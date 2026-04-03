@@ -118,6 +118,39 @@ theorem euclidSteps_le {a b : ℕ} (hab : b ≤ a) {n : ℕ} (hb : b < fib (n + 
   have ⟨h1, _⟩ := lame hab h
   omega
 
+/-- When `a < b`, one Euclidean step swaps the arguments:
+`euclidSteps a b = 1 + euclidSteps b a`. -/
+theorem euclidSteps_of_lt {a b : ℕ} (hab : a < b) :
+    euclidSteps a b = 1 + euclidSteps b a := by
+  rw [euclidSteps_succ a (by omega : 0 < b),
+    Nat.mod_eq_of_lt hab]
+
+/-- For `n ≥ 2`, `fib (n + 2) % fib (n + 1) = fib n`. Since
+`fib (n + 2) = fib n + fib (n + 1)` and `fib n < fib (n + 1)`
+when `n ≥ 2`, the remainder is `fib n`. -/
+private theorem fib_mod_fib_succ {n : ℕ} (hn : 2 ≤ n) :
+    fib (n + 2) % fib (n + 1) = fib n := by
+  rw [fib_add_two, Nat.add_mod_right,
+    Nat.mod_eq_of_lt (fib_lt_fib_succ hn)]
+
+/-- **Tightness of Lamé's bound.** Consecutive Fibonacci numbers
+are the worst case for the Euclidean algorithm:
+`euclidSteps (fib (n + 2)) (fib (n + 1)) = n` for `n ≥ 1`. -/
+theorem euclidSteps_fib {n : ℕ} (hn : 0 < n) :
+    euclidSteps (fib (n + 2)) (fib (n + 1)) = n := by
+  induction n with
+  | zero => omega
+  | succ n ih =>
+    cases n with
+    | zero => native_decide
+    | succ n =>
+      have hfib_pos : 0 < fib (n + 2 + 1) := by
+        simp [fib_pos]
+      rw [euclidSteps_succ _ hfib_pos,
+        fib_mod_fib_succ (by omega : 2 ≤ n + 2),
+        ih (by omega)]
+      omega
+
 -- Computational tests: verify euclidSteps on known examples
 -- gcd(21, 13) is the classic worst case for Fibonacci inputs: 5 steps
 -- 21 = 1*13 + 8, 13 = 1*8 + 5, 8 = 1*5 + 3, 5 = 1*3 + 2, 3 = 1*2 + 1, 2 = 2*1 + 0
