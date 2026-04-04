@@ -118,6 +118,18 @@ theorem euclidSteps_le {a b : ℕ} (hab : b ≤ a) {n : ℕ} (hb : b < fib (n + 
   have ⟨h1, _⟩ := lame hab h
   omega
 
+/-- `euclidSteps` counts the number of recursive calls in the computation of
+`Nat.gcd`. They follow the same recursion: `gcd` computes the result,
+`euclidSteps` counts the steps. -/
+theorem gcd_euclidSteps (a b : ℕ) :
+    (euclidSteps a b = 0 ↔ b = 0) ∧
+    (0 < b → euclidSteps a b = 1 + euclidSteps b (a % b)) := by
+  refine ⟨⟨fun h => ?_, fun h => by subst h; simp⟩,
+    fun hb => euclidSteps_succ a hb⟩
+  rcases Nat.eq_zero_or_pos b with rfl | hb
+  · rfl
+  · rw [euclidSteps_succ a hb] at h; omega
+
 /-- When `a < b`, one Euclidean step swaps the arguments:
 `euclidSteps a b = 1 + euclidSteps b a`. -/
 theorem euclidSteps_of_lt {a b : ℕ} (hab : a < b) :
